@@ -13,19 +13,19 @@ st.title("📊 Dashboard")
 # =====================================================
 # CARREGAR PLANILHA
 # =====================================================
+from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-@st.cache_data(ttl=300)  # Atualiza a cada 5 minutos
+@st.cache_data(ttl=300)
 def carregar_dados():
 
-    url = (
-        "https://mrslogsa.sharepoint.com/sites/"
-        "malhaferroviariasp/Documentos%20Compartilhados/"
-        "Fechamento%20Medi%C3%A7%C3%A3o/medi%C3%A7%C3%A3o.xlsx"
+    arquivo = (
+        Path(__file__).parent.parent /
+        "medição.xlsx"
     )
 
-    return pd.read_excel(url)
+    return pd.read_excel(arquivo)
 
 df = carregar_dados()
 # =====================================================
