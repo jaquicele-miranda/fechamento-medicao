@@ -1,0 +1,124 @@
+# =====================================================
+# MENU
+# =====================================================
+
+pagina = st.sidebar.radio(
+    "Menu",
+    [
+        "Dashboard",
+        "Matriz de Indiretos",
+        "Auditoria"
+    ]
+)
+
+# =====================================================
+# MATRIZ DE INDIRETOS
+# =====================================================
+
+if pagina == "Matriz de Indiretos":
+
+    indiretos["Data Início Planejado"] = pd.to_datetime(
+        indiretos["Data Início Planejado"],
+        errors="coerce"
+    )
+
+    indiretos["Dia"] = (
+        indiretos["Data Início Planejado"]
+        .dt.day
+    )
+
+    # KPIs
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(
+            "Recursos",
+            indiretos["Descrição do Material"].nunique()
+        )
+
+    with col2:
+        st.metric(
+            "Equipes",
+            indiretos["Centro de Trabalho Operação"].nunique()
+        )
+
+    with col3:
+        st.metric(
+            "Quantidade",
+            indiretos["Quantidade Real"].sum()
+        )
+
+    # MATRIZ QUANTIDADE
+
+    matriz = pd.pivot_table(
+        indiretos,
+        index="Descrição do Material",
+        columns="Dia",
+        values="Quantidade Real",
+        aggfunc="sum",
+        fill_value=0
+    )
+
+    matriz["TOTAL"] = matriz.sum(axis=1)
+
+    matriz.loc["TOTAL DIA"] = matriz.sum()
+
+    st.subheader("Matriz Operacional - Quantidade")
+
+    st.dataframe(
+        matriz.style.background_gradient(
+            cmap="YlGn"
+        ),
+        use_container_width=True
+    )
+
+    # MATRIZ VALOR
+
+    matriz_valor = pd.pivot_table(
+        indiretos,
+        index="Descrição do Material",
+        columns="Dia",
+        values="Valor Total Item Pedido",
+        aggfunc="sum",
+        fill_value=0
+    )
+
+    matriz_valor["TOTAL"] = matriz_valor.sum(axis=1)
+
+    matriz_valor.loc["TOTAL DIA"] = matriz_valor.sum()
+
+    st.subheader("Matriz Operacional - Valor (R$)")
+
+    st.dataframe(
+        matriz_valor.style.background_gradient(
+            cmap="YlGnBu"
+        ),
+        use_container_width=True
+    )
+
+    # DIVERGÊNCIAS CRÍTICAS
+
+    if "Valor Total Item Pedido" in erros.columns:
+
+        erros_criticos = erros[
+            pd.to_numeric(
+                erros["Valor Total Item Pedido"],
+                errors="coerce"
+            ).fillna(0) > 1000
+        ]
+
+        st.subheader("🚨 Divergências Críticas")
+
+        st.dataframe(
+            erros_criticos[
+                [
+                    "Nº Ordem",
+                    "Centro de Trabalho Operação",
+                    "Nome do município",
+                    "Centro requisição",
+                    "Valor Total Item Pedido",
+                    "Validação"
+                ]
+            ],
+            use_container_width=True
+        )

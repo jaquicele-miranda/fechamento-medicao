@@ -1,0 +1,57 @@
+st.subheader("📋 Resumo Executivo")
+
+st.info(
+    f"""
+    Valor Total da Medição: R$ {valor_total:,.2f}
+
+    Valor dos Indiretos: R$ {valor_indiretos:,.2f}
+
+    Percentual de Indiretos: {percentual_indiretos:.2f}%
+
+    Divergências Município x Centro: {len(erros)}
+
+    Quantidade acima da requisição: {len(auditoria)}
+    """
+)
+top_equipes = (
+    indiretos
+    .groupby("Centro de Trabalho Operação")
+    ["Valor Total Item Pedido"]
+    .sum()
+    .reset_index()
+    .sort_values(
+        "Valor Total Item Pedido",
+        ascending=False
+    )
+)
+st.subheader("🏆 Ranking das Equipes")
+
+st.dataframe(
+    top_equipes,
+    use_container_width=True
+)
+if percentual_indiretos > 35:
+    st.error(
+        f"Percentual de indiretos elevado: {percentual_indiretos:.2f}%"
+    )
+
+elif percentual_indiretos > 25:
+    st.warning(
+        f"Percentual de indiretos em atenção: {percentual_indiretos:.2f}%"
+    )
+
+else:
+    st.success(
+        f"Percentual de indiretos controlado: {percentual_indiretos:.2f}%"
+    )
+    ordens_criticas = df[
+    (
+        df["Validação"] != "OK"
+    )
+    |
+    (
+        df["Quantidade Real"]
+        >
+        df["Qtd. Req. Compra"]
+    )
+]

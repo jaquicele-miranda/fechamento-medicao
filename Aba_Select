@@ -1,0 +1,7 @@
+aba1, aba2, aba3 = st.tabs(
+    [
+        "📊 Dashboard",
+        "📅 Matriz de Indiretos",
+        "🚨 Auditoria"
+    ]
+)
